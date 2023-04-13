@@ -18,24 +18,115 @@
 
 using namespace std;
 
+class LabelNotFoundException : public logic_error
+{
+	using logic_error::logic_error;
+};
+
+class UnknownRegisterException : public logic_error
+{
+	using logic_error::logic_error;
+};
+
+
+const regex RBP_REGEX("\\[rbp-([\\d]*)\\]");
+const regex LABEL_REGEX("\\.[a-zA-Z0-9]*:");
+
 enum class ASM_OP
 {
+
+	NOP,
 	PUSH, POP,
+
 	MOV,
+
 	ADD, SUB,
+
 	INC, DEC,
+
 	IMUL, IDIV,
+
 	AND, OR, XOR,
 	NOT, NEG,
+
 	SHL, SHR,
+
+	LABEL,
 	JMP,
-	JE, JNE,
-	JZ,
-	JG, JGE,
-	JL, JLE,
+	JE, JNE, // == !=
+	JZ,      //  
+	JG, JGE, // > >=
+	JL, JLE, // < <=
 	CMP
 };
 
+
+
+int GetRBPIndex(const string& rbp_s, int start = REG_OFFSET)
+{
+	smatch rbp_match;
+
+	if (!regex_search(rbp_s, rbp_match, RBP_REGEX))
+		return -1;
+
+	return stoi(rbp_match[1]) / 4 + start;
+}
+
+
+
+
+REGISTER_INDEX GetRegisterIndex(const string& arg)
+{
+	if (arg == "eax") return REGISTER_INDEX::EAX;
+	if (arg == "ebx") return REGISTER_INDEX::EBX;
+	if (arg == "ecx") return REGISTER_INDEX::ECX;
+	if (arg == "edx") return REGISTER_INDEX::EDX;
+	if (arg == "rbp") return REGISTER_INDEX::RBP;
+	if (arg == "rsp") return REGISTER_INDEX::RSP;
+	return REGISTER_INDEX::UNKNOWN;
+}
+
+struct Argument
+{
+	uint adress = 0;
+	int constant = 0;
+
+
+	Argument() = default;
+
+	Argument(const string& arg)
+	{
+		this->constant = 0;
+
+		int _adress = GetRBPIndex(arg);
+		if (_adress != -1) // it is an adress
+		{
+			this->adress = _adress;
+			return;
+		}
+
+		REGISTER_INDEX reg = GetRegisterIndex(arg);
+		if (reg != REGISTER_INDEX::UNKNOWN) //it is a register
+		{
+			this->adress = static_cast<uint>(reg);
+			return;
+		}
+
+		this->adress = 0;//illegal adress means constant;
+		this->constant = stoi(arg);
+	}
+};
+
+
+
+
+struct ASMInstruction
+{
+	ASM_OP op = ASM_OP::NOP;
+	int jump = -1;
+	Argument a1{};
+	Argument a2{};
+};
 
 
 
@@ -51,44 +142,14 @@ unordered_map<string, ASM_OP> TO_ASM_OP
 };
 
 
-class LabelNotFoundException : public logic_error
-{
-	using logic_error::logic_error;
-};
-
-class UnknownRegisterException : public logic_error
-{
-	using logic_error::logic_error;
-};
-
-
-const regex RBP_REGEX("\\[rbp-([\\d]*)\\]");
-const regex LABEL_REGEX("\\.[a-zA-Z0-9]*:");
 
 
 
-REGISTER_INDEX GetRegisterIndex(const string& arg)
-{
-	if (arg == "eax")return REGISTER_INDEX::EAX;
-	if (arg == "ebx")return REGISTER_INDEX::EBX;
-	if (arg == "ecx")return REGISTER_INDEX::ECX;
-	if (arg == "edx")return REGISTER_INDEX::EDX;
-	if (arg == "rbp")return REGISTER_INDEX::RBP;
-	if (arg == "rsp")return REGISTER_INDEX::RSP;
-	return REGISTER_INDEX::UNKNOWN;
-}
 
 
 
-int GetRBPIndex(const string& rbp_s, int start = REG_OFFSET)
-{
-	smatch rbp_match;
 
-	if (!regex_search(rbp_s, rbp_match, RBP_REGEX))
-		return -1;
 
-	return stoi(rbp_match[1]) / 4 + start;
-}
 
 
 vector<string> ReadLines(const string& path)
@@ -117,7 +178,7 @@ vector<string> ReadLines(const string& path)
 
 
 
-Instruction ParseJmp(const vector<string>& line, int index, const unordered_map<string, int>& labels)
+CYBERCobraInstruction ParseJmp(const vector<string>& line, int index, const unordered_map<string, int>& labels)
 {
 	string label = line[1];
 
@@ -126,7 +187,7 @@ Instruction ParseJmp(const vector<string>& line, int index, const unordered_map<
 
 	int offset = labels.at(label) - index;
 
-	Instruction instr{};
+	CYBERCobraInstruction instr{};
 	instr.j = true;
 	instr.b = false;
 	instr.offset = offset;
@@ -136,7 +197,7 @@ Instruction ParseJmp(const vector<string>& line, int index, const unordered_map<
 
 
 
-Instruction ParseMov(const vector<string>& line)
+CYBERCobraInstruction ParseMov(const vector<string>& line)
 {
 	string arg1_s = line[1];
 	string arg2_s = line[2];
@@ -147,14 +208,14 @@ Instruction ParseMov(const vector<string>& line)
 	if (arg1 == -1)arg1 = static_cast<int>(GetRegisterIndex(arg1_s));
 	if (arg2 == -1)arg2 = static_cast<int>(GetRegisterIndex(arg2_s));
 
-	Instruction instr{};
-	
+	CYBERCobraInstruction instr{};
+
 
 	return instr;
 }
 
 
-optional<Instruction> ParseInstruction(ASM_OP op, const vector<string>& line, uint index, const unordered_map<string, int>& labels)
+optional<CYBERCobraInstruction> ParseInstruction(ASM_OP op, const vector<string>& line, uint index, const unordered_map<string, int>& labels)
 {
 	switch (op)
 	{
@@ -216,12 +277,12 @@ optional<Instruction> ParseInstruction(ASM_OP op, const vector<string>& line, ui
 
 
 
-optional<Instruction> LineToInstruction(const vector<string>& line, uint index, const unordered_map<string, int>& labels)
+optional<CYBERCobraInstruction> LineToInstruction(const vector<string>& line, uint index, const unordered_map<string, int>& labels)
 {
 	if (line.size() == 1)
 		return nullopt;
 
-	optional<Instruction> instruction;
+	optional<CYBERCobraInstruction> instruction;
 	string op = line[0];
 
 	if (TO_ASM_OP.find(op) == TO_ASM_OP.end())
@@ -236,56 +297,13 @@ optional<Instruction> LineToInstruction(const vector<string>& line, uint index, 
 
 
 
-vector<Instruction> ProcessLines(const vector<string>& lines)
+vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 {
-	vector<vector<string>> splitted_lines(lines.size());
 
-	transform(lines.begin(), lines.end(), splitted_lines.begin(),
-		[](const string& s) {
-			return Split(s, " ");
-		});
+	auto splitted_lines = FormatLines(lines);
 
-	transform(splitted_lines.begin(), splitted_lines.end(), splitted_lines.begin(),
-		[](const vector<string>& splitted_line)
-		{
-			vector<string> new_splitted_line;
-			copy_if(splitted_line.begin(),
-				splitted_line.end(),
-				back_inserter(new_splitted_line),
-				[](const string& s) {
-					return !s.empty() && s != "DWORD" && s != "PTR";
-				});
-			transform(new_splitted_line.begin(), new_splitted_line.end(), new_splitted_line.begin(),
-				[](const string &s) {
-					if (s[s.size() - 1] == ',')
-						return s.substr(0, s.size() - 1);
-					return s;
-				});
-			return new_splitted_line;
-
-		});
-
-	vector<vector<string>> splitted_lines_nolabels;
-
-	unordered_map<string, int> labels;
-	size_t index = 0;
-	copy_if(splitted_lines.begin(), splitted_lines.end(), back_inserter(splitted_lines_nolabels),
-		[&](const vector<string>& splitted_line)
-		{
-			index++;
-			if (splitted_line.size() != 1)
-				return true;
-
-			auto token = splitted_line[0];
-			if (!regex_match(token, LABEL_REGEX))
-				return true;
-
-			labels[token.substr(0, token.size() - 1)] = index - labels.size() - 1;
-			return false;
-		});
 
 	{
-
 		size_t i = 0;
 
 		for (const auto& line : splitted_lines)
@@ -300,8 +318,30 @@ vector<Instruction> ProcessLines(const vector<string>& lines)
 		}
 	}
 
-	{
 
+
+
+
+	vector<vector<string>> splitted_lines_nolabels;
+	unordered_map<string, int> labels;
+	size_t index = 0;
+	copy_if(splitted_lines.begin(), splitted_lines.end(), back_inserter(splitted_lines_nolabels),
+		[&](const vector<string>& splitted_line)
+		{
+			index++;
+	if (splitted_line.size() != 1)
+		return true;
+
+	auto token = splitted_line[0];
+	if (!regex_match(token, LABEL_REGEX))
+		return true;
+
+	labels[token.substr(0, token.size() - 1)] = index - labels.size() - 1;
+	return false;
+		});
+
+
+	{
 		size_t i = 0;
 
 		for (const auto& line : splitted_lines_nolabels)
@@ -327,7 +367,7 @@ vector<Instruction> ProcessLines(const vector<string>& lines)
 
 
 
-	vector<Instruction> result;
+	vector<CYBERCobraInstruction> result;
 
 
 
@@ -342,7 +382,7 @@ int main(int argc, char** argv)
 	string path = "a.txt";
 
 	vector <string> lines;
-	vector<Instruction> instructions;
+	vector<CYBERCobraInstruction> instructions;
 	try
 	{
 		lines = ReadLines(path);

@@ -4,10 +4,10 @@
 typedef unsigned int uint;
 
 
-enum class REGISTER_INDEX :int
+enum class REGISTER_INDEX :uint
 {
-	UNKNOWN = -1,
-	EAX = 1,
+	UNKNOWN = 0,
+	EAX,
 	EBX,
 	ECX,
 	EDX,
@@ -43,7 +43,7 @@ enum class ALUOP : uint
 };
 
 
-struct Instruction
+struct CYBERCobraInstruction
 {
 	uint write_adress : 5;
 	union {
