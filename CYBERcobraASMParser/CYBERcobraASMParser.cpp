@@ -152,30 +152,6 @@ unordered_map<string, ASM_OP> TO_ASM_OP
 
 
 
-vector<string> ReadLines(const string& path)
-{
-
-	ifstream asm_file;
-	asm_file.open(path);
-
-	if (!asm_file.is_open())
-	{
-		throw exception();
-	}
-
-	list<string> lines;
-
-	do
-	{
-		string line;
-		getline(asm_file, line);
-		lines.push_back(line);
-	} while (!asm_file.eof());
-
-
-	return vector<string>(lines.begin(), lines.end());
-}
-
 
 
 CYBERCobraInstruction ParseJmp(const vector<string>& line, int index, const unordered_map<string, int>& labels)

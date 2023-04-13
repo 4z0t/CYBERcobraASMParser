@@ -9,6 +9,36 @@
 
 using namespace std;
 
+class UnableToOpenFileException :public logic_error
+{
+	using logic_error::logic_error;
+};
+
+vector<string> ReadLines(const string& path)
+{
+
+	ifstream asm_file;
+	asm_file.open(path);
+
+	if (!asm_file.is_open())
+	{
+		throw UnableToOpenFileException(path);
+	}
+
+	list<string> lines;
+
+	do
+	{
+		string line;
+		getline(asm_file, line);
+		lines.push_back(line);
+	} while (!asm_file.eof());
+
+
+	return vector<string>(lines.begin(), lines.end());
+}
+
+
 
 vector< string> Split(const string& s, const string& separator)
 {
