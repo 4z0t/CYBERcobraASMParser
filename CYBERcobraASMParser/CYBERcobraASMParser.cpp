@@ -91,7 +91,6 @@ struct Argument
 	uint adress = 0;
 	int constant = 0;
 
-
 	Argument() = default;
 
 	Argument(const string& arg)
@@ -130,7 +129,7 @@ struct ASMInstruction
 
 
 
-unordered_map<string, ASM_OP> TO_ASM_OP
+unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 {
 	{"nop",ASM_OP::NOP},
 	{"ret",ASM_OP::RET},
@@ -275,7 +274,7 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 	}
 
 
-	instr = ParseInstruction(TO_ASM_OP.at(token), line, labels);
+	instr = ParseInstruction(STRING_TO_ASM_OP.at(token), line, labels);
 
 	return instr;
 		});
@@ -286,6 +285,13 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 }
 
 
+
+vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instructions)
+{
+	vector<CYBERCobraInstruction> cobra_instructions;
+
+	return cobra_instructions;
+}
 
 vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 {
@@ -309,7 +315,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 
 	vector<ASMInstruction>  asm_instructions = ToASMInstructions(splitted_lines);
 
-	{
+	{// remove redundant ops
 		vector<ASMInstruction>  new_asm_instructions;
 
 		copy_if(asm_instructions.begin(), asm_instructions.end(), back_inserter(new_asm_instructions),
@@ -335,28 +341,13 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 			Argument a1 = instr.a1;
 			Argument a2 = instr.a2;
 			cout << static_cast<uint>(instr.op) << "\t" << instr.jump << "\t"
-				<< ((a1.adress == 0) ? "const " : "adress ") << ((a1.adress == 0) ? a1.constant : a1.adress) << "\t"
-				<< ((a2.adress == 0) ? "const " : "adress ") << ((a2.adress == 0) ? a2.constant : a2.adress) << "\t"
+				<< ((a1.adress == 0) ? "const  " : "adress ") << ((a1.adress == 0) ? a1.constant : a1.adress) << "\t"
+				<< ((a2.adress == 0) ? "const  " : "adress ") << ((a2.adress == 0) ? a2.constant : a2.adress) << "\t"
 				<< endl;
 		}
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-	vector<CYBERCobraInstruction> result;
-
-
-
-
+	vector<CYBERCobraInstruction> result = ASMToCobra(asm_instructions);
 
 
 	return result;
@@ -364,7 +355,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 
 int main(int argc, char** argv)
 {
-	string path = "a.txt";
+	string path = "power.txt";
 
 	vector <string> lines;
 	vector<CYBERCobraInstruction> instructions;
