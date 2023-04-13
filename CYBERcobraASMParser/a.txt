@@ -1,0 +1,21 @@
+        push    rbp
+        mov     rbp, rsp
+        mov     DWORD PTR [rbp-4], 4
+        mov     DWORD PTR [rbp-8], 5
+        mov     edx, DWORD PTR [rbp-4]
+        mov     eax, DWORD PTR [rbp-8]
+        add     eax, edx
+        mov     DWORD PTR [rbp-12], eax
+        mov     eax, DWORD PTR [rbp-12]
+        cmp     eax, DWORD PTR [rbp-4]
+        jle     .L2
+        mov     eax, DWORD PTR [rbp-12]
+        mov     DWORD PTR [rbp-4], eax
+        jmp     .L3
+.L2:
+        mov     eax, DWORD PTR [rbp-4]
+        mov     DWORD PTR [rbp-12], eax
+.L3:
+        nop
+        pop     rbp
+        ret
