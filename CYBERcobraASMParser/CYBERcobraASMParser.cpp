@@ -35,7 +35,7 @@ const regex LABEL_REGEX("\\.[a-zA-Z0-9]*:");
 enum class ASM_OP
 {
 
-	NOP,
+	NOP, RET,
 	PUSH, POP,
 
 	MOV,
@@ -132,143 +132,157 @@ struct ASMInstruction
 
 unordered_map<string, ASM_OP> TO_ASM_OP
 {
-	{"push",ASM_OP::PUSH },
-	{"pop",ASM_OP::POP },
+	{"nop",ASM_OP::NOP},
+	{"ret",ASM_OP::RET},
+	{"push", ASM_OP::PUSH},
+	{"pop", ASM_OP::POP},
 	{"mov", ASM_OP::MOV},
+
 	{"add", ASM_OP::ADD},
 	{"jmp", ASM_OP::JMP},
 	{"jle", ASM_OP::JLE},
 	{"cmp", ASM_OP::CMP},
+
+	{"sub",ASM_OP::SUB},
+	{"inc",ASM_OP::INC},
+	{"dec",ASM_OP::DEC},
+	{"imul",ASM_OP::IMUL},
+	{"idib",ASM_OP::IDIV},
+
+	{"and",ASM_OP::AND},
+	{"or",ASM_OP::OR,},
+	{"xor",ASM_OP::XOR},
+	{"not",ASM_OP::NOT},
+	{"neg",ASM_OP::NEG},
+	{"shl",ASM_OP::SHL},
+	{"shr",ASM_OP::SHR},
+
+	{"je",ASM_OP::JE},
+	{"jne",ASM_OP::JNE},
+	{"jz",ASM_OP::JZ  },
+	{"jg",ASM_OP::JG},
+	{"jge",ASM_OP::JGE},
+	{"jl",ASM_OP::JL},
+	{"jle",ASM_OP::JLE},
 };
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-CYBERCobraInstruction ParseJmp(const vector<string>& line, int index, const unordered_map<string, int>& labels)
+struct Labels
 {
-	string label = line[1];
-
-	if (labels.find(label) == labels.end())
-		throw LabelNotFoundException(label);
-
-	int offset = labels.at(label) - index;
-
-	CYBERCobraInstruction instr{};
-	instr.j = true;
-	instr.b = false;
-	instr.offset = offset;
-
-	return instr;
-}
+	uint index = 0;
+	unordered_map<string, int> labels;
+};
 
 
-
-CYBERCobraInstruction ParseMov(const vector<string>& line)
+ASMInstruction ParseInstruction(ASM_OP op, const vector<string>& line, Labels& labels)
 {
-	string arg1_s = line[1];
-	string arg2_s = line[2];
-
-	int arg1 = GetRBPIndex(arg1_s);
-	int arg2 = GetRBPIndex(arg2_s);
-
-	if (arg1 == -1)arg1 = static_cast<int>(GetRegisterIndex(arg1_s));
-	if (arg2 == -1)arg2 = static_cast<int>(GetRegisterIndex(arg2_s));
-
-	CYBERCobraInstruction instr{};
-
-
-	return instr;
-}
-
-
-optional<CYBERCobraInstruction> ParseInstruction(ASM_OP op, const vector<string>& line, uint index, const unordered_map<string, int>& labels)
-{
+	ASMInstruction instr{};
+	instr.op = op;
+	string lbl;
 	switch (op)
 	{
+		//ignore these
+	case ASM_OP::NOP:
+	case ASM_OP::RET:
 	case ASM_OP::PUSH:
-		break;
 	case ASM_OP::POP:
-		break;
-	case ASM_OP::MOV:
-		return ParseMov(line);
-	case ASM_OP::ADD:
-		break;
-	case ASM_OP::SUB:
-		break;
 	case ASM_OP::INC:
-		break;
 	case ASM_OP::DEC:
 		break;
+
+		//two argumnets
+	case ASM_OP::MOV:
+	case ASM_OP::ADD:
+	case ASM_OP::SUB:
 	case ASM_OP::IMUL:
-		break;
 	case ASM_OP::IDIV:
-		break;
 	case ASM_OP::AND:
-		break;
 	case ASM_OP::OR:
-		break;
 	case ASM_OP::XOR:
-		break;
-	case ASM_OP::NOT:
-		break;
-	case ASM_OP::NEG:
-		break;
-	case ASM_OP::SHL:
-		break;
 	case ASM_OP::SHR:
-		break;
-	case ASM_OP::JMP:
-		return ParseJmp(line, index, labels);
-	case ASM_OP::JE:
-		break;
-	case ASM_OP::JNE:
-		break;
-	case ASM_OP::JZ:
-		break;
-	case ASM_OP::JG:
-		break;
-	case ASM_OP::JGE:
-		break;
-	case ASM_OP::JL:
-		break;
-	case ASM_OP::JLE:
-		break;
 	case ASM_OP::CMP:
+	case ASM_OP::SHL:
+		instr.a1 = Argument(line[1]);
+		instr.a2 = Argument(line[2]);
+		break;
+
+		//one arg
+	case ASM_OP::NOT:
+	case ASM_OP::NEG:
+		instr.a1 = Argument(line[1]);
+		break;
+		//labels
+	case ASM_OP::JE:
+	case ASM_OP::JNE:
+	case ASM_OP::JZ:
+	case ASM_OP::JG:
+	case ASM_OP::JGE:
+	case ASM_OP::JL:
+	case ASM_OP::JLE:
+	case ASM_OP::JMP:
+		lbl = line[1];
+		if (labels.labels.find(lbl) == labels.labels.end())
+		{
+			labels.labels[lbl] = labels.index;
+			instr.jump = labels.index;
+			labels.index++;
+		}
+		else
+		{
+			instr.jump = labels.labels[lbl];
+		}
 		break;
 	default:
 		break;
 	}
-	return nullopt;
+	return instr;
 }
 
 
 
-optional<CYBERCobraInstruction> LineToInstruction(const vector<string>& line, uint index, const unordered_map<string, int>& labels)
+vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted_lines)
 {
-	if (line.size() == 1)
-		return nullopt;
 
-	optional<CYBERCobraInstruction> instruction;
-	string op = line[0];
+	Labels labels;
 
-	if (TO_ASM_OP.find(op) == TO_ASM_OP.end())
-		return nullopt;
+	vector<ASMInstruction> asm_instructions(splitted_lines.size());
+	transform(
+		splitted_lines.begin(),
+		splitted_lines.end(),
+		asm_instructions.begin(),
+		[&](const vector<string>& line)
+		{
+			ASMInstruction instr;
 
-	auto asm_op = TO_ASM_OP.at(op);
+	auto token = line[0];
+	//check for label
+	if (regex_match(token, LABEL_REGEX))
+	{
+		auto lbl = token.substr(0, token.size() - 1);
+		instr.op = ASM_OP::LABEL;
+		if (labels.labels.find(lbl) == labels.labels.end())
+		{
+			instr.jump = labels.index;
+			labels.labels[lbl] = labels.index;
+			labels.index++;
+		}
+		else
+		{
+			instr.jump = labels.labels[lbl];
+		}
+		return instr;
+	}
 
-	instruction = ParseInstruction(asm_op, line, index, labels);
 
-	return instruction;
+	instr = ParseInstruction(TO_ASM_OP.at(token), line, labels);
+
+	return instr;
+		});
+
+
+
+	return asm_instructions;
 }
 
 
@@ -277,7 +291,6 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 {
 
 	auto splitted_lines = FormatLines(lines);
-
 
 	{
 		size_t i = 0;
@@ -294,49 +307,45 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 		}
 	}
 
-
-
-
-
-	vector<vector<string>> splitted_lines_nolabels;
-	unordered_map<string, int> labels;
-	size_t index = 0;
-	copy_if(splitted_lines.begin(), splitted_lines.end(), back_inserter(splitted_lines_nolabels),
-		[&](const vector<string>& splitted_line)
-		{
-			index++;
-	if (splitted_line.size() != 1)
-		return true;
-
-	auto token = splitted_line[0];
-	if (!regex_match(token, LABEL_REGEX))
-		return true;
-
-	labels[token.substr(0, token.size() - 1)] = index - labels.size() - 1;
-	return false;
-		});
-
+	vector<ASMInstruction>  asm_instructions = ToASMInstructions(splitted_lines);
 
 	{
-		size_t i = 0;
+		vector<ASMInstruction>  new_asm_instructions;
 
-		for (const auto& line : splitted_lines_nolabels)
-		{
-			cout << i << "\t";
-			for (const auto& s : line)
+		copy_if(asm_instructions.begin(), asm_instructions.end(), back_inserter(new_asm_instructions),
+			[](const ASMInstruction& instr)
 			{
-				cout << "'" << s << "' ";
-			}
-			LineToInstruction(line, i, labels);
-			i++;
-			cout << endl;
+				switch (instr.op)
+				{
+				case ASM_OP::NOP:
+				case ASM_OP::RET:
+				case ASM_OP::PUSH:
+				case ASM_OP::POP:
+				case ASM_OP::INC:
+				case ASM_OP::DEC:
+					return false;
+				}
+		return true;
+			});
+		asm_instructions = move(new_asm_instructions);
+	}
+	{
+		for (const auto& instr : asm_instructions)
+		{
+			Argument a1 = instr.a1;
+			Argument a2 = instr.a2;
+			cout << static_cast<uint>(instr.op) << "\t" << instr.jump << "\t"
+				<< ((a1.adress == 0) ? "const " : "adress ") << ((a1.adress == 0) ? a1.constant : a1.adress) << "\t"
+				<< ((a2.adress == 0) ? "const " : "adress ") << ((a2.adress == 0) ? a2.constant : a2.adress) << "\t"
+				<< endl;
 		}
 	}
 
-	for (const auto& [k, v] : labels)
-	{
-		cout << k << " " << v << endl;
-	}
+
+
+
+
+
 
 
 
