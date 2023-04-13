@@ -4,12 +4,16 @@
 typedef unsigned int uint;
 
 
-enum class REGISTER_INDEX
+enum class REGISTER_INDEX :int
 {
+	UNKNOWN = -1,
 	EAX = 1,
-	EBX = 2,
-	ECX = 3,
-	EDX = 4,
+	EBX,
+	ECX,
+	EDX,
+	RBP,
+	RSP,
+
 };
 
 
