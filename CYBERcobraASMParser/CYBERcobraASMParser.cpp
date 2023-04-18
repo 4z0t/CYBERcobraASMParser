@@ -157,7 +157,7 @@ unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 	{"inc",ASM_OP::INC},
 	{"dec",ASM_OP::DEC},
 	{"imul",ASM_OP::IMUL},
-	{"idib",ASM_OP::IDIV},
+	{"idiv",ASM_OP::IDIV},
 
 	{"and",ASM_OP::AND},
 	{"or",ASM_OP::OR,},
@@ -373,7 +373,10 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instructions)
 {
 	vector<CYBERCobraInstruction> cobra_instructions;
+	cobra_instructions.reserve(asm_instructions.size());
+
 	CYBERCobraInstruction cobra_instr;
+
 
 
 
