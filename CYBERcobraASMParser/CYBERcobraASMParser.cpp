@@ -146,7 +146,7 @@ struct ASMInstruction
 
 
 
-unordered_map<string, ASM_OP> STRING_TO_ASM_OP
+const unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 {
 	{"nop",ASM_OP::NOP},
 	{"ret",ASM_OP::RET},
@@ -192,7 +192,7 @@ unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 
 
 
-ALUOP ASMopToALUOP(ASM_OP op)
+constexpr ALUOP ASMopToALUOP(ASM_OP op)
 {
 	switch (op)
 	{
