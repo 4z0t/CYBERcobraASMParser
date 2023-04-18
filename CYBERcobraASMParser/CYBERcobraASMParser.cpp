@@ -50,6 +50,7 @@ enum class ASM_OP
 	NOT, NEG,
 
 	SHL, SHR,
+	SAL, SAR,
 
 	LABEL,
 	JMP,
@@ -163,8 +164,12 @@ unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 	{"xor",ASM_OP::XOR},
 	{"not",ASM_OP::NOT},
 	{"neg",ASM_OP::NEG},
+
+
 	{"shl",ASM_OP::SHL},
+	{"sal",ASM_OP::SAL},
 	{"shr",ASM_OP::SHR},
+	{"sar",ASM_OP::SAR},
 
 	{"je",ASM_OP::JE},
 	{"jne",ASM_OP::JNE},
