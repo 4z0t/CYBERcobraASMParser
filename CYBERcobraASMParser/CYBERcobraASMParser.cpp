@@ -395,7 +395,11 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 		}
 		break;
 
-
+		case ASM_OP::JMP:
+		{
+			cobra_instructions.push_back(CYBERCobra::Jump(cur.jump));
+		};
+		break;
 		case ASM_OP::JE:
 		case ASM_OP::JNE:
 		case ASM_OP::JZ:
@@ -573,7 +577,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 
 int main(int argc, char** argv)
 {
-	string path = "power.txt";
+	string path = "a.txt";
 
 	vector <string> lines;
 	vector<CYBERCobraInstruction> instructions;
