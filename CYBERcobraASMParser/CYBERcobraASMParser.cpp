@@ -58,7 +58,8 @@ enum class ASM_OP
 	JZ,      //  
 	JG, JGE, // > >=
 	JL, JLE, // < <=
-	CMP
+	CMP,
+	READ // custom instruction
 };
 
 
@@ -178,6 +179,9 @@ unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 	{"jge",ASM_OP::JGE},
 	{"jl",ASM_OP::JL},
 	{"jle",ASM_OP::JLE},
+
+	{"read",ASM_OP::READ},
+
 };
 
 
@@ -196,6 +200,7 @@ ALUOP ASMopToALUOP(ASM_OP op)
 	case ASM_OP::CMP:
 	case ASM_OP::JMP:
 	case ASM_OP::LABEL:
+	case ASM_OP::READ:
 		break;
 
 
@@ -305,6 +310,7 @@ ASMInstruction ParseInstruction(ASM_OP op, const vector<string>& line, Labels& l
 		//one arg
 	case ASM_OP::NOT:
 	case ASM_OP::NEG:
+	case ASM_OP::READ:
 		instr.a1 = Argument(line[1]);
 		break;
 		//labels
@@ -408,6 +414,14 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 			cobra_instructions.push_back(CYBERCobra::Jump(cur.jump));
 		};
 		break;
+
+
+		case ASM_OP::READ:
+		{
+			cobra_instructions.push_back(CYBERCobra::ReadTo(cur.a1.adress));
+		};
+		break;
+
 		case ASM_OP::JE:
 		case ASM_OP::JNE:
 		case ASM_OP::JZ:
@@ -503,12 +517,6 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 	}
 
 
-	for (size_t i = 0; i < cobra_instructions.size(); i++)
-	{
-		auto& instr = cobra_instructions[i];
-		cout << i << "\t" << CYBERCobra::ToString(instr) << endl;
-	}
-
 
 
 
@@ -598,6 +606,12 @@ int main(int argc, char** argv)
 	}
 
 
+
+	for (size_t i = 0; i < instructions.size(); i++)
+	{
+		auto& instr = instructions[i];
+		cout << i << "\t" << CYBERCobra::ToString(instr) << endl;
+	}
 
 
 	return 0;
