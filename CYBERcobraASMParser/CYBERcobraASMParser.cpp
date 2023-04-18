@@ -342,29 +342,29 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 		{
 			ASMInstruction instr;
 
-			auto token = line[0];
-			//check for label
-			if (regex_match(token, LABEL_REGEX))
-			{
-				auto lbl = token.substr(0, token.size() - 1);
-				instr.op = ASM_OP::LABEL;
-				if (labels.labels.find(lbl) == labels.labels.end())
-				{
-					instr.jump = labels.index;
-					labels.labels[lbl] = labels.index;
-					labels.index++;
-				}
-				else
-				{
-					instr.jump = labels.labels[lbl];
-				}
-				return instr;
-			}
+	auto token = line[0];
+	//check for label
+	if (regex_match(token, LABEL_REGEX))
+	{
+		auto lbl = token.substr(0, token.size() - 1);
+		instr.op = ASM_OP::LABEL;
+		if (labels.labels.find(lbl) == labels.labels.end())
+		{
+			instr.jump = labels.index;
+			labels.labels[lbl] = labels.index;
+			labels.index++;
+		}
+		else
+		{
+			instr.jump = labels.labels[lbl];
+		}
+		return instr;
+	}
 
 
-			instr = ParseInstruction(STRING_TO_ASM_OP.at(token), line, labels);
+	instr = ParseInstruction(STRING_TO_ASM_OP.at(token), line, labels);
 
-			return instr;
+	return instr;
 		});
 
 
@@ -470,10 +470,37 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 		prev = cur;
 	}
 
+
+	/*{
+		for (const auto& label : labels)
+		{
+			cout << label.first << ": " << label.second << endl;
+		}
+	}*/
+
 	// after we put in jumps proper offsets
 
 
+	for (size_t i = 0; i < cobra_instructions.size(); i++)
+	{
+		auto& instr = cobra_instructions[i];
+		if (instr.b || instr.j)
+		{
+			instr.offset = labels[instr.offset] - i;
+		}
+	}
 
+
+	for (size_t i = 0; i < cobra_instructions.size(); i++)
+	{
+		auto& instr = cobra_instructions[i];
+		cout << i << "\t";
+		if (instr.b || instr.j)
+		{
+			cout << instr.offset;
+		}
+		cout << endl;
+	}
 
 
 
@@ -506,7 +533,10 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 	{// remove redundant ops
 		vector<ASMInstruction>  new_asm_instructions;
 
-		copy_if(asm_instructions.begin(), asm_instructions.end(), back_inserter(new_asm_instructions),
+		copy_if(
+			asm_instructions.begin(),
+			asm_instructions.end(),
+			back_inserter(new_asm_instructions),
 			[](const ASMInstruction& instr)
 			{
 				switch (instr.op)
@@ -519,7 +549,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 				case ASM_OP::DEC:
 					return false;
 				}
-				return true;
+		return true;
 			});
 		asm_instructions = move(new_asm_instructions);
 	}
