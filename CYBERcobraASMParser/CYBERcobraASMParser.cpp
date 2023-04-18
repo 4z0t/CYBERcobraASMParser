@@ -182,11 +182,80 @@ unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 
 
 
+
+ALUOP ASMopToALUOP(ASM_OP op)
+{
+	switch (op)	
+	{
+		//ignored
+	case ASM_OP::NOP:
+	case ASM_OP::RET:
+	case ASM_OP::PUSH:
+	case ASM_OP::POP:
+	case ASM_OP::MOV:
+	case ASM_OP::CMP:
+	case ASM_OP::JMP:
+	case ASM_OP::LABEL:
+		break;
+
+
+		//not implemented
+	case ASM_OP::INC:
+	case ASM_OP::DEC:
+	case ASM_OP::IMUL:
+	case ASM_OP::IDIV:
+	case ASM_OP::NEG:
+	case ASM_OP::NOT:
+	case ASM_OP::JZ:
+		break;
+		
+
+	case ASM_OP::ADD:
+		return ALUOP::ALU_ADD;
+	case ASM_OP::SUB:
+		return ALUOP::ALU_SUB;
+	case ASM_OP::AND:
+		return ALUOP::ALU_AND;
+	case ASM_OP::OR:
+		return ALUOP::ALU_OR;
+	case ASM_OP::XOR:
+		return ALUOP::ALU_XOR;
+	case ASM_OP::SHL:
+		return ALUOP::ALU_SLL;
+	case ASM_OP::SHR:
+		return ALUOP::ALU_SRL;
+	case ASM_OP::SAL:
+		return ALUOP::ALU_SLL;
+	case ASM_OP::SAR:
+		return ALUOP::ALU_SRA;
+	case ASM_OP::JE:
+		return ALUOP::ALU_EQ;
+	case ASM_OP::JNE:
+		return ALUOP::ALU_NE;
+
+		//todo fix
+	case ASM_OP::JG:
+		return ALUOP::ALU_GES;
+	case ASM_OP::JGE:
+		return ALUOP::ALU_GES;
+	case ASM_OP::JL:
+		return ALUOP::ALU_LTS;
+	case ASM_OP::JLE:
+		return ALUOP::ALU_LTS;
+	default:
+		break;
+	}
+	return ALUOP::ALU_ADD;
+}
+
+
+
 struct Labels
 {
 	uint index = 0;
 	unordered_map<string, int> labels;
 };
+
 
 
 ASMInstruction ParseInstruction(ASM_OP op, const vector<string>& line, Labels& labels)
@@ -304,6 +373,10 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instructions)
 {
 	vector<CYBERCobraInstruction> cobra_instructions;
+	CYBERCobraInstruction cobra_instr;
+
+
+
 
 	return cobra_instructions;
 }
