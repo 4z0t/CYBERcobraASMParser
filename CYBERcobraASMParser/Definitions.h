@@ -220,7 +220,9 @@ namespace CYBERCobra
 
 		if (instr.b)
 		{
-			ss << "J " << instr.offset << " if " << SQuare(instr.ra1) << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
+			ss << "J " << instr.offset << " if " << SQuare(instr.ra1);
+			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
+				ss << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
 		}
 		else if (instr.j)
 		{
@@ -228,7 +230,9 @@ namespace CYBERCobra
 		}
 		else if (instr.ws == 0b01)
 		{
-			ss << "[" << instr.write_adress << "]" << " <- " << SQuare(instr.ra1) << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
+			ss << "[" << instr.write_adress << "]" << " <- " << SQuare(instr.ra1);
+			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
+				ss << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
 		}
 		else if (instr.ws == 0b00)
 		{
