@@ -132,6 +132,7 @@ namespace CYBERCobra
 		bitset<32> repr{ 0 };
 		repr |= (instr.j ? 1u : 0u) << 31;
 		repr |= (instr.b ? 1u : 0u) << 30;
+		repr |= instr.ws << 28;
 		if (instr.ws == 0b00 && !(instr.b || instr.j))
 		{
 			repr |= instr.rf_const << 5;
@@ -155,8 +156,11 @@ namespace CYBERCobra
 	string ToHex(CYBERCobraInstruction instr)
 	{
 		using namespace std;
-		bitset<32> repr;
-		return "TODO";
+		stringstream ss;
+		ss.width(8);
+		ss.fill('0');
+		ss << hex  << ToBits(instr).to_ulong();
+		return ss.str();
 	}
 
 	string ToString(CYBERCobraInstruction instr, bool display_const = false)
