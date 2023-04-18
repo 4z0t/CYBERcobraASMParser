@@ -122,7 +122,7 @@ namespace CYBERCobra
 		return instr;
 	}
 
-	string ToBinary(CYBERCobraInstruction instr)
+	bitset<32> ToBits(CYBERCobraInstruction instr)
 	{
 		using namespace std;
 		bitset<32> repr{ 0 };
@@ -139,9 +139,13 @@ namespace CYBERCobra
 			repr |= instr.ra2 << 13;
 			repr |= instr.offset << 5;
 		}
-
 		repr |= instr.write_adress;
-		return repr.to_string();
+		return repr;
+	}
+
+	string ToBinary(CYBERCobraInstruction instr)
+	{
+		return ToBits(instr).to_string();
 	}
 
 	string ToHex(CYBERCobraInstruction instr)
