@@ -47,6 +47,47 @@ enum class ALUOP : uint
 
 };
 
+std::string ALUOPToString(ALUOP op)
+{
+	switch (op)
+	{
+	case ALUOP::ALU_ADD:
+		return "+";
+	case ALUOP::ALU_SUB:
+		return "-";
+	case ALUOP::ALU_XOR:
+		return "^";
+	case ALUOP::ALU_OR:
+		return "|";
+	case ALUOP::ALU_AND:
+		return "&";
+	case ALUOP::ALU_SRA:
+		return ">>>";
+	case ALUOP::ALU_SRL:
+		return ">>";
+	case ALUOP::ALU_SLL:
+		return "<<";
+	case ALUOP::ALU_LTS:
+		return "<s";
+	case ALUOP::ALU_LTU:
+		return "<u";
+	case ALUOP::ALU_GES:
+		return ">=s";
+	case ALUOP::ALU_GEU:
+		return ">=u";
+	case ALUOP::ALU_EQ:
+		return "==";
+	case ALUOP::ALU_NE:
+		return "!=";
+	case ALUOP::ALU_SLTS:
+		return "= <s";
+	case ALUOP::ALU_SLTU:
+		return "= <u";
+	default:
+		break;
+	}
+}
+
 
 struct CYBERCobraInstruction
 {
@@ -160,6 +201,43 @@ namespace CYBERCobra
 		ss.width(8);
 		ss.fill('0');
 		ss << hex << ToBits(instr).to_ulong();
+		return ss.str();
+	}
+
+	string Represent(CYBERCobraInstruction instr)
+	{
+		stringstream ss;
+
+
+		const auto SQuare = [&](uint n) {
+			ss << '[';
+			ss.width(2);
+			ss.fill(' ');
+			ss << n << ']';
+			return ' ';
+		};
+
+
+		if (instr.b)
+		{
+			ss << "J " << instr.offset << " if " << SQuare(instr.ra1) << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
+		}
+		else if (instr.j)
+		{
+			ss << "J " << instr.offset;
+		}
+		else if (instr.ws == 0b01)
+		{
+			ss << "[" << instr.write_adress << "]" << " <- " << SQuare(instr.ra1) << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
+		}
+		else if (instr.ws == 0b00)
+		{
+			ss << "[" << instr.write_adress << "]" << " <- " << instr.rf_const;
+		}
+		else if (instr.ws == 0b10)
+		{
+			ss << "[" << instr.write_adress << "]" << " <- sw_i";
+		}
 		return ss.str();
 	}
 
