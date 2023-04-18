@@ -28,6 +28,11 @@ class UnknownRegisterException : public logic_error
 	using logic_error::logic_error;
 };
 
+class UnknownASMInstruction : public logic_error
+{
+	using logic_error::logic_error;
+};
+
 
 const regex RBP_REGEX("\\[rbp-([\\d]*)\\]");
 const regex LABEL_REGEX("\\.[a-zA-Z0-9]*:");
@@ -375,7 +380,8 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 		return instr;
 	}
 
-
+	if (STRING_TO_ASM_OP.find(token) == STRING_TO_ASM_OP.end())
+		throw UnknownASMInstruction(token);
 	instr = ParseInstruction(STRING_TO_ASM_OP.at(token), line, labels);
 
 	return instr;
@@ -602,6 +608,11 @@ int main(int argc, char** argv)
 	catch (LabelNotFoundException& e)
 	{
 		cerr << "Unable to find label " << e.what();
+		return 1;
+	}
+	catch (UnknownASMInstruction& e)
+	{
+		cerr << "Unknown asm instruction " << e.what();
 		return 1;
 	}
 
