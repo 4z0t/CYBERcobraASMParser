@@ -51,7 +51,7 @@ struct CYBERCobraInstruction
 		int rf_const : 23;
 		struct
 		{
-			char offset;
+			int offset : 8;
 			uint ra1 : 5;
 			uint ra2 : 5;
 			ALUOP op : 5;
@@ -65,7 +65,7 @@ struct CYBERCobraInstruction
 
 namespace CYBERCobra
 {
-	
+
 	CYBERCobraInstruction PushConstantAt(int constant, uint adress)
 	{
 		CYBERCobraInstruction instr{};
@@ -127,8 +127,19 @@ namespace CYBERCobra
 		using namespace std;
 		bitset<32> repr{ 0 };
 		repr |= (instr.j ? 1u : 0u) << 31;
-		repr |= (instr.b ? 1u: 0u) << 30;
-		repr |= instr.rf_const << 5;
+		repr |= (instr.b ? 1u : 0u) << 30;
+		if (instr.ws == 0b00)
+		{
+			repr |= instr.rf_const << 5;
+		}
+		else
+		{
+			repr |= static_cast<uint>(instr.op) << 23;
+			repr |= instr.ra1 << 18;
+			repr |= instr.ra2 << 13;
+			repr |= instr.offset << 5;
+		}
+
 		repr |= instr.write_adress;
 		return repr.to_string();
 	}

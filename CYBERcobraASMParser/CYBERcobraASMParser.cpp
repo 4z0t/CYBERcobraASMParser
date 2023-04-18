@@ -465,7 +465,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	CYBERCobraInstruction instr = CYBERCobra::ALUInstruction(ALUOP::ALU_XOR, 0b01010, 0b00010, 0b00001);
+	CYBERCobraInstruction instr = CYBERCobra::ConditionalJump(ALUOP::ALU_XOR, 0b01010, 0b00010, -3);
 	
 	cout << instr.rf_const << endl;;
 	cout << CYBERCobra::ToBinary(instr) << endl;;
