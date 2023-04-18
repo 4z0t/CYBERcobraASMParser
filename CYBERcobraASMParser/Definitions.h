@@ -1,5 +1,6 @@
 #pragma once
-
+#include <string>
+#include <bitset>
 
 typedef unsigned int uint;
 
@@ -64,6 +65,7 @@ struct CYBERCobraInstruction
 
 namespace CYBERCobra
 {
+	
 	CYBERCobraInstruction PushConstantAt(int constant, uint adress)
 	{
 		CYBERCobraInstruction instr{};
@@ -118,6 +120,24 @@ namespace CYBERCobra
 		instr.write_adress = wa;
 		instr.op = op;
 		return instr;
+	}
+
+	string ToBinary(CYBERCobraInstruction instr)
+	{
+		using namespace std;
+		bitset<32> repr{ 0 };
+		repr |= (instr.j ? 1u : 0u) << 31;
+		repr |= (instr.b ? 1u: 0u) << 30;
+		repr |= instr.rf_const << 5;
+		repr |= instr.write_adress;
+		return repr.to_string();
+	}
+
+	string ToHex(CYBERCobraInstruction instr)
+	{
+		using namespace std;
+		bitset<32> repr;
+		return "TODO";
 	}
 
 }
