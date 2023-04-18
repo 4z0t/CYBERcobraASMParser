@@ -69,9 +69,55 @@ namespace CYBERCobra
 		CYBERCobraInstruction instr{};
 		instr.j = false;
 		instr.b = false;
-		instr.ws = 0;
+		instr.ws = 0b00;
 		instr.rf_const = constant;
 		instr.write_adress = adress;
 		return instr;
 	}
+
+
+	CYBERCobraInstruction Jump(int offset)
+	{
+		CYBERCobraInstruction instr{};
+		instr.j = true;
+		instr.b = false;
+		instr.offset = offset;
+		return instr;
+	}
+
+	CYBERCobraInstruction ConditionalJump(ALUOP op, uint ra1, uint ra2, int offset)
+	{
+		CYBERCobraInstruction instr{};
+		instr.j = false;
+		instr.b = true;
+		instr.ra1 = ra1;
+		instr.ra2 = ra2;
+		instr.offset = offset;
+		instr.op = op;
+		return instr;
+	}
+
+	CYBERCobraInstruction ReadTo(uint adress)
+	{
+		CYBERCobraInstruction instr{};
+		instr.j = false;
+		instr.b = false;
+		instr.ws = 0b10;
+		instr.write_adress = adress;
+		return instr;
+	}
+
+	CYBERCobraInstruction ALUInstruction(ALUOP op, uint ra1, uint ra2, uint wa)
+	{
+		CYBERCobraInstruction instr{};
+		instr.j = false;
+		instr.b = false;
+		instr.ws = 0b01;
+		instr.ra1 = ra1;
+		instr.ra2 = ra2;
+		instr.write_adress = wa;
+		instr.op = op;
+		return instr;
+	}
+
 }
