@@ -14,8 +14,11 @@ enum class REGISTER_INDEX :uint
 	EDX,
 	RBP,
 	RSP,
-
+	CNST,
 };
+
+const uint CONST_ADRESS = static_cast<uint>(REGISTER_INDEX::CNST);
+
 
 
 enum class ALUOP : uint
@@ -66,7 +69,7 @@ struct CYBERCobraInstruction
 namespace CYBERCobra
 {
 
-	CYBERCobraInstruction PushConstantAt(int constant, uint adress)
+	CYBERCobraInstruction PushConstantAt(int constant, uint adress = CONST_ADRESS)
 	{
 		CYBERCobraInstruction instr{};
 		instr.j = false;

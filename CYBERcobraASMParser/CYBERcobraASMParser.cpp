@@ -185,7 +185,7 @@ unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 
 ALUOP ASMopToALUOP(ASM_OP op)
 {
-	switch (op)	
+	switch (op)
 	{
 		//ignored
 	case ASM_OP::NOP:
@@ -208,7 +208,7 @@ ALUOP ASMopToALUOP(ASM_OP op)
 	case ASM_OP::NOT:
 	case ASM_OP::JZ:
 		break;
-		
+
 
 	case ASM_OP::ADD:
 		return ALUOP::ALU_ADD;
@@ -286,8 +286,10 @@ ASMInstruction ParseInstruction(ASM_OP op, const vector<string>& line, Labels& l
 	case ASM_OP::OR:
 	case ASM_OP::XOR:
 	case ASM_OP::SHR:
-	case ASM_OP::CMP:
 	case ASM_OP::SHL:
+	case ASM_OP::SAR:
+	case ASM_OP::SAL:
+	case ASM_OP::CMP:
 		instr.a1 = Argument(line[1]);
 		instr.a2 = Argument(line[2]);
 		break;
@@ -340,29 +342,29 @@ vector<ASMInstruction> ToASMInstructions(const vector<vector< string>>& splitted
 		{
 			ASMInstruction instr;
 
-	auto token = line[0];
-	//check for label
-	if (regex_match(token, LABEL_REGEX))
-	{
-		auto lbl = token.substr(0, token.size() - 1);
-		instr.op = ASM_OP::LABEL;
-		if (labels.labels.find(lbl) == labels.labels.end())
-		{
-			instr.jump = labels.index;
-			labels.labels[lbl] = labels.index;
-			labels.index++;
-		}
-		else
-		{
-			instr.jump = labels.labels[lbl];
-		}
-		return instr;
-	}
+			auto token = line[0];
+			//check for label
+			if (regex_match(token, LABEL_REGEX))
+			{
+				auto lbl = token.substr(0, token.size() - 1);
+				instr.op = ASM_OP::LABEL;
+				if (labels.labels.find(lbl) == labels.labels.end())
+				{
+					instr.jump = labels.index;
+					labels.labels[lbl] = labels.index;
+					labels.index++;
+				}
+				else
+				{
+					instr.jump = labels.labels[lbl];
+				}
+				return instr;
+			}
 
 
-	instr = ParseInstruction(STRING_TO_ASM_OP.at(token), line, labels);
+			instr = ParseInstruction(STRING_TO_ASM_OP.at(token), line, labels);
 
-	return instr;
+			return instr;
 		});
 
 
@@ -377,7 +379,100 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 	vector<CYBERCobraInstruction> cobra_instructions;
 	cobra_instructions.reserve(asm_instructions.size());
 
-	CYBERCobraInstruction cobra_instr;
+	unordered_map<int, int> labels;
+
+	ASMInstruction prev;
+
+	for (size_t i = 0; i < asm_instructions.size(); i++)
+	{
+		auto cur = asm_instructions[i];
+
+		switch (cur.op)
+		{
+		case ASM_OP::LABEL:
+		{
+			labels[cur.jump] = cobra_instructions.size();
+		}
+		break;
+
+
+		case ASM_OP::JE:
+		case ASM_OP::JNE:
+		case ASM_OP::JZ:
+		case ASM_OP::JG:
+		case ASM_OP::JGE:
+		case ASM_OP::JL:
+		case ASM_OP::JLE:
+		{
+			if (prev.op != ASM_OP::CMP)
+			{
+				throw logic_error("previous must be a CMP op");
+			}
+
+			if (prev.a2.IsConstant())
+			{
+				cobra_instructions.push_back(CYBERCobra::PushConstantAt(prev.a2.constant, CONST_ADRESS));
+				cobra_instructions.push_back(CYBERCobra::ConditionalJump(ASMopToALUOP(cur.op), prev.a1.adress, CONST_ADRESS, cur.jump));
+			}
+			else
+			{
+				cobra_instructions.push_back(CYBERCobra::ConditionalJump(ASMopToALUOP(cur.op), prev.a1.adress, prev.a2.adress, cur.jump));
+			}
+
+
+		};
+		break;
+
+
+		case ASM_OP::MOV:
+		{
+			if (cur.a2.IsConstant())
+			{
+				cobra_instructions.push_back(CYBERCobra::PushConstantAt(cur.a2.constant, cur.a1.adress));
+			}
+			else
+			{
+				cobra_instructions.push_back(CYBERCobra::ALUInstruction(ALUOP::ALU_ADD, cur.a2.adress, 0, cur.a1.adress));
+			}
+		};
+		break;
+
+
+		case ASM_OP::ADD:
+		case ASM_OP::SUB:
+		case ASM_OP::IMUL:
+		case ASM_OP::IDIV:
+		case ASM_OP::AND:
+		case ASM_OP::OR:
+		case ASM_OP::XOR:
+		case ASM_OP::SHR:
+		case ASM_OP::SHL:
+		case ASM_OP::SAR:
+		case ASM_OP::SAL:
+		{
+			if (cur.a2.IsConstant())
+			{
+				cobra_instructions.push_back(CYBERCobra::PushConstantAt(cur.a2.constant, CONST_ADRESS));
+				cobra_instructions.push_back(CYBERCobra::ALUInstruction(ASMopToALUOP(cur.op), cur.a1.adress, CONST_ADRESS, cur.a1.adress));
+			}
+			else
+			{
+				cobra_instructions.push_back(CYBERCobra::ALUInstruction(ASMopToALUOP(cur.op), cur.a1.adress, cur.a2.adress, cur.a1.adress));
+			}
+
+		};
+		break;
+
+		default:
+			break;
+		}
+
+		prev = cur;
+	}
+
+	// after we put in jumps proper offsets
+
+
 
 
 
@@ -424,7 +519,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 				case ASM_OP::DEC:
 					return false;
 				}
-		return true;
+				return true;
 			});
 		asm_instructions = move(new_asm_instructions);
 	}
@@ -465,9 +560,10 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	CYBERCobraInstruction instr = CYBERCobra::ConditionalJump(ALUOP::ALU_XOR, 0b01010, 0b00010, -3);
-	
-	
+	//CYBERCobraInstruction instr = CYBERCobra::ConditionalJump(ALUOP::ALU_XOR, 0b01010, 0b00010, -3);
+	CYBERCobraInstruction instr = CYBERCobra::Jump(-4);
+
+
 	cout << hex << CYBERCobra::ToBits(instr).to_ulong() << endl;;
 	cout << CYBERCobra::ToBinary(instr) << endl;;
 
