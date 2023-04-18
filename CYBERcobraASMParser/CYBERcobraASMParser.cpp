@@ -59,10 +59,16 @@ enum class ASM_OP
 
 	LABEL,
 	JMP,
-	JE, JNE, // == !=
-	JZ,      //  
+
+	JE, JZ, JNE, JNZ, // == !=
+
+	//signed
 	JG, JGE, // > >=
 	JL, JLE, // < <=
+	//unsigned
+	JA, JAE, // > >=
+	JB, JBE, // < <=
+
 	CMP,
 	READ // custom instruction
 };
@@ -184,6 +190,14 @@ const unordered_map<string, ASM_OP> STRING_TO_ASM_OP
 	{"jge",ASM_OP::JGE},
 	{"jl",ASM_OP::JL},
 	{"jle",ASM_OP::JLE},
+	{"jne",ASM_OP::JNE},
+	{"jnz",ASM_OP::JNZ},
+
+	{"jae",ASM_OP::JAE},
+	{"ja",ASM_OP::JA},
+	{"jb",ASM_OP::JB},
+	{"jbe",ASM_OP::JBE},
+
 
 	{"read",ASM_OP::READ},
 
@@ -252,6 +266,10 @@ constexpr ALUOP ASMopToALUOP(ASM_OP op)
 		return ALUOP::ALU_LTS;
 	case ASM_OP::JLE:
 		return ALUOP::ALU_LTS;
+	case ASM_OP::JB:
+		return ALUOP::ALU_LTU;
+	case ASM_OP::JAE:
+		return ALUOP::ALU_GEU;
 	default:
 		break;
 	}
@@ -326,6 +344,12 @@ ASMInstruction ParseInstruction(ASM_OP op, const vector<string>& line, Labels& l
 	case ASM_OP::JGE:
 	case ASM_OP::JL:
 	case ASM_OP::JLE:
+
+	case ASM_OP::JA:
+	case ASM_OP::JAE:
+	case ASM_OP::JB:
+	case ASM_OP::JBE:
+
 	case ASM_OP::JMP:
 		lbl = line[1];
 		if (labels.labels.find(lbl) == labels.labels.end())
@@ -435,6 +459,11 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 		case ASM_OP::JGE:
 		case ASM_OP::JL:
 		case ASM_OP::JLE:
+
+		case ASM_OP::JA:
+		case ASM_OP::JAE:
+		case ASM_OP::JB:
+		case ASM_OP::JBE:
 		{
 			if (prev.op != ASM_OP::CMP)
 			{
@@ -621,10 +650,8 @@ int main(int argc, char** argv)
 	for (size_t i = 0; i < instructions.size(); i++)
 	{
 		auto& instr = instructions[i];
-		cout << i << "\t" << CYBERCobra::ToString(instr) <<"\t"<< CYBERCobra::ToHex(instr) << endl;
+		cout << i << "\t" << CYBERCobra::ToString(instr) << "\t" << CYBERCobra::ToHex(instr) << endl;
 	}
-
-
 	return 0;
 }
 
