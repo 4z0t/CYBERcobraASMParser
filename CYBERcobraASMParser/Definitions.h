@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <bitset>
+#include <sstream>
 
 typedef unsigned int uint;
 
@@ -131,7 +132,7 @@ namespace CYBERCobra
 		bitset<32> repr{ 0 };
 		repr |= (instr.j ? 1u : 0u) << 31;
 		repr |= (instr.b ? 1u : 0u) << 30;
-		if (instr.ws == 0b00)
+		if (instr.ws == 0b00 && !(instr.b || instr.j))
 		{
 			repr |= instr.rf_const << 5;
 		}
@@ -156,6 +157,28 @@ namespace CYBERCobra
 		using namespace std;
 		bitset<32> repr;
 		return "TODO";
+	}
+
+	string ToString(CYBERCobraInstruction instr)
+	{
+		using namespace std;
+		stringstream ss;
+		ss << bitset<1>(instr.j) << " "
+			<< bitset<1>(instr.b) << " "
+			<< bitset<2>(instr.ws) << " ";
+		if (instr.ws == 0b00 && !(instr.b || instr.j))
+		{
+			ss << bitset<23>(instr.rf_const) << " ";
+		}
+		else
+		{
+			ss << bitset<5>(static_cast<uint>(instr.op)) << " "
+				<< bitset<5>(instr.ra1) << " "
+				<< bitset<5>(instr.ra2) << " "
+				<< bitset<8>(instr.offset) << " ";
+		}
+		ss << bitset<5>(instr.write_adress);
+		return ss.str();
 	}
 
 }

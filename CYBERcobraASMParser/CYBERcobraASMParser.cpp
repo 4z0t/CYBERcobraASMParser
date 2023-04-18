@@ -498,12 +498,7 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 	for (size_t i = 0; i < cobra_instructions.size(); i++)
 	{
 		auto& instr = cobra_instructions[i];
-		cout << i << "\t";
-		if (instr.b || instr.j)
-		{
-			cout << instr.offset;
-		}
-		cout << endl;
+		cout << i << "\t" << CYBERCobra::ToString(instr) << endl;
 	}
 
 
@@ -600,6 +595,7 @@ int main(int argc, char** argv)
 
 	cout << hex << CYBERCobra::ToBits(instr).to_ulong() << endl;;
 	cout << CYBERCobra::ToBinary(instr) << endl;;
+	cout << bitset<5>(4) << endl;
 
 
 
