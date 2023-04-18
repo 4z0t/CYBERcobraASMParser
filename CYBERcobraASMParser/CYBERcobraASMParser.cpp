@@ -518,7 +518,7 @@ vector<CYBERCobraInstruction> ASMToCobra(const vector<ASMInstruction>& asm_instr
 		auto& instr = cobra_instructions[i];
 		if (instr.b || instr.j)
 		{
-			instr.offset = labels[instr.offset] - i;
+			instr.offset = labels[instr.offset] - (int)i;
 		}
 	}
 

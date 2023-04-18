@@ -159,7 +159,7 @@ namespace CYBERCobra
 		stringstream ss;
 		ss.width(8);
 		ss.fill('0');
-		ss << hex  << ToBits(instr).to_ulong();
+		ss << hex << ToBits(instr).to_ulong();
 		return ss.str();
 	}
 
