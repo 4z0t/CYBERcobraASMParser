@@ -650,7 +650,7 @@ int main(int argc, char** argv)
 	for (size_t i = 0; i < instructions.size(); i++)
 	{
 		auto& instr = instructions[i];
-		cout << i << "\t" << CYBERCobra::ToString(instr) << "\t" << CYBERCobra::ToHex(instr) << "\t" << i<< "\t" << CYBERCobra::Represent(instr) << endl;
+		cout << i << "\t" << CYBERCobra::ToString(instr) << "\t" << CYBERCobra::ToHex(instr) << "\t" << i << "\t" << CYBERCobra::Represent(instr, i) << endl;
 	}
 	return 0;
 }

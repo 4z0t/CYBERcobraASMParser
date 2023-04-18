@@ -204,7 +204,7 @@ namespace CYBERCobra
 		return ss.str();
 	}
 
-	string Represent(CYBERCobraInstruction instr)
+	string Represent(CYBERCobraInstruction instr, int current_line = 0)
 	{
 		stringstream ss;
 
@@ -220,13 +220,13 @@ namespace CYBERCobra
 
 		if (instr.b)
 		{
-			ss << "J " << instr.offset << " if " << SQuare(instr.ra1);
+			ss << "J " << (instr.offset + current_line) << " if " << SQuare(instr.ra1);
 			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
 				ss << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
 		}
 		else if (instr.j)
 		{
-			ss << "J " << instr.offset;
+			ss << "J " << (instr.offset + current_line);
 		}
 		else if (instr.ws == 0b01)
 		{
