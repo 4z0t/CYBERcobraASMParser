@@ -114,6 +114,16 @@ struct Argument
 		this->adress = 0;//illegal adress means constant;
 		this->constant = stoi(arg);
 	}
+
+	bool IsAdress()
+	{
+		return adress != 0;
+	}
+
+	bool IsConstant()
+	{
+		return !IsAdress();
+	}
 };
 
 
