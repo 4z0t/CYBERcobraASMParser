@@ -159,7 +159,7 @@ namespace CYBERCobra
 		return "TODO";
 	}
 
-	string ToString(CYBERCobraInstruction instr)
+	string ToString(CYBERCobraInstruction instr, bool display_const = false)
 	{
 		using namespace std;
 		stringstream ss;
@@ -168,7 +168,10 @@ namespace CYBERCobra
 			<< bitset<2>(instr.ws) << " ";
 		if (instr.ws == 0b00 && !(instr.b || instr.j))
 		{
-			ss << bitset<23>(instr.rf_const) << " ";
+			ss << bitset<23>(instr.rf_const);
+			if (display_const)
+				ss << "[" << instr.rf_const << "]";
+			ss << " ";
 		}
 		else
 		{

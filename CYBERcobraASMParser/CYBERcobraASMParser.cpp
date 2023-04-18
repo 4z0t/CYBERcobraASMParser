@@ -285,13 +285,21 @@ ASMInstruction ParseInstruction(ASM_OP op, const vector<string>& line, Labels& l
 	case ASM_OP::AND:
 	case ASM_OP::OR:
 	case ASM_OP::XOR:
+	case ASM_OP::CMP:
+		instr.a1 = Argument(line[1]);
+		instr.a2 = Argument(line[2]);
+		break;
+
+		//these are tricky (can have  1 or 2 args)
 	case ASM_OP::SHR:
 	case ASM_OP::SHL:
 	case ASM_OP::SAR:
 	case ASM_OP::SAL:
-	case ASM_OP::CMP:
 		instr.a1 = Argument(line[1]);
-		instr.a2 = Argument(line[2]);
+		if (line.size() == 3)
+			instr.a2 = Argument(line[2]);
+		else
+			instr.a2.constant = 1;
 		break;
 
 		//one arg
@@ -552,7 +560,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 			});
 		asm_instructions = move(new_asm_instructions);
 	}
-	{
+	/*{
 		for (const auto& instr : asm_instructions)
 		{
 			Argument a1 = instr.a1;
@@ -562,7 +570,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 				<< ((a2.adress == 0) ? "const  " : "adress ") << ((a2.adress == 0) ? a2.constant : a2.adress) << "\t"
 				<< endl;
 		}
-	}
+	}*/
 
 	vector<CYBERCobraInstruction> result = ASMToCobra(asm_instructions);
 
@@ -572,7 +580,7 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 
 int main(int argc, char** argv)
 {
-	string path = "a.txt";
+	string path = "lab.txt";
 
 	vector <string> lines;
 	vector<CYBERCobraInstruction> instructions;
@@ -588,15 +596,6 @@ int main(int argc, char** argv)
 		cerr << "Unable to find label " << e.what();
 		return 1;
 	}
-
-	//CYBERCobraInstruction instr = CYBERCobra::ConditionalJump(ALUOP::ALU_XOR, 0b01010, 0b00010, -3);
-	CYBERCobraInstruction instr = CYBERCobra::Jump(-4);
-
-
-	cout << hex << CYBERCobra::ToBits(instr).to_ulong() << endl;;
-	cout << CYBERCobra::ToBinary(instr) << endl;;
-	cout << bitset<5>(4) << endl;
-
 
 
 
