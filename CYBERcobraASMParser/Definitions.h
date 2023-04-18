@@ -60,3 +60,18 @@ struct CYBERCobraInstruction
 	bool b;
 	bool j;
 };
+
+
+namespace CYBERCobra
+{
+	CYBERCobraInstruction PushConstantAt(int constant, uint adress)
+	{
+		CYBERCobraInstruction instr{};
+		instr.j = false;
+		instr.b = false;
+		instr.ws = 0;
+		instr.rf_const = constant;
+		instr.write_adress = adress;
+		return instr;
+	}
+}
