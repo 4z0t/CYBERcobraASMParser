@@ -176,16 +176,16 @@ namespace CYBERCobra
 		repr |= instr.ws << 28;
 		if (instr.ws == 0b00 && !(instr.b || instr.j))
 		{
-			repr |= instr.rf_const << 5;
+			repr |= (instr.rf_const& ((1<<23)-1)) << 5;
 		}
 		else
 		{
-			repr |= static_cast<uint>(instr.op) << 23;
-			repr |= instr.ra1 << 18;
-			repr |= instr.ra2 << 13;
-			repr |= instr.offset << 5;
+			repr |= (static_cast<uint>(instr.op) & 0b11111) << 23;
+			repr |= (instr.ra1 & 0b11111) << 18;
+			repr |= (instr.ra2 & 0b11111) << 13;
+			repr |= (instr.offset & 255) << 5;
 		}
-		repr |= instr.write_adress;
+		repr |= instr.write_adress& 0b11111;
 		return repr;
 	}
 
@@ -228,15 +228,11 @@ namespace CYBERCobra
 	string Represent(CYBERCobraInstruction instr, int current_line = 0)
 	{
 		stringstream ss;
-
-
-
-
 		if (instr.b)
 		{
 			ss << "J " << (instr.offset + current_line) << " if " << _Square(instr.ra1);
 			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
-				ss <<" "<< ALUOPToString(instr.op) << " " << _Square(instr.ra2);
+				ss << " " << ALUOPToString(instr.op) << " " << _Square(instr.ra2);
 		}
 		else if (instr.j)
 		{
@@ -244,17 +240,17 @@ namespace CYBERCobra
 		}
 		else if (instr.ws == 0b01)
 		{
-			ss << "[" << instr.write_adress << "]" << " <- " << _Square(instr.ra1);
+			ss << _Square(instr.write_adress) << " <- " << _Square(instr.ra1);
 			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
-				ss <<" "<< ALUOPToString(instr.op) << " " << _Square(instr.ra2);
+				ss << " " << ALUOPToString(instr.op) << " " << _Square(instr.ra2);
 		}
 		else if (instr.ws == 0b00)
 		{
-			ss << "[" << instr.write_adress << "]" << " <- " << instr.rf_const;
+			ss << _Square(instr.write_adress) << " <- " << instr.rf_const;
 		}
 		else if (instr.ws == 0b10)
 		{
-			ss << "[" << instr.write_adress << "]" << " <- sw_i";
+			ss << _Square(instr.write_adress) << " <- sw_i";
 		}
 		return ss.str();
 	}
