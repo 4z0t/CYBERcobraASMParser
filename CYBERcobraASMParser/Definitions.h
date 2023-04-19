@@ -204,25 +204,39 @@ namespace CYBERCobra
 		return ss.str();
 	}
 
+	class _Square
+	{
+	public:
+		_Square(int n) :n(n) {}
+		~_Square() {}
+
+		int n;
+
+	};
+
+
+
+	ostream& operator<<(ostream& ss, _Square n)
+	{
+		ss << '[';
+		ss.width(2);
+		ss.fill(' ');
+		ss << n.n << ']';
+		return ss;
+	};
+
 	string Represent(CYBERCobraInstruction instr, int current_line = 0)
 	{
 		stringstream ss;
 
 
-		const auto SQuare = [&](uint n) {
-			ss << '[';
-			ss.width(2);
-			ss.fill(' ');
-			ss << n << ']';
-			return ' ';
-		};
 
 
 		if (instr.b)
 		{
-			ss << "J " << (instr.offset + current_line) << " if " << SQuare(instr.ra1);
+			ss << "J " << (instr.offset + current_line) << " if " << _Square(instr.ra1);
 			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
-				ss << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
+				ss <<" "<< ALUOPToString(instr.op) << " " << _Square(instr.ra2);
 		}
 		else if (instr.j)
 		{
@@ -230,9 +244,9 @@ namespace CYBERCobra
 		}
 		else if (instr.ws == 0b01)
 		{
-			ss << "[" << instr.write_adress << "]" << " <- " << SQuare(instr.ra1);
+			ss << "[" << instr.write_adress << "]" << " <- " << _Square(instr.ra1);
 			if (instr.ra2 || instr.op != ALUOP::ALU_ADD)
-				ss << ALUOPToString(instr.op) << " " << SQuare(instr.ra2);
+				ss <<" "<< ALUOPToString(instr.op) << " " << _Square(instr.ra2);
 		}
 		else if (instr.ws == 0b00)
 		{
@@ -254,7 +268,7 @@ namespace CYBERCobra
 			<< bitset<2>(instr.ws) << " ";
 		if (instr.ws == 0b00 && !(instr.b || instr.j))
 		{
-			ss << bitset<23>(instr.rf_const);
+			ss << "  " << bitset<23>(instr.rf_const) << " ";
 			if (display_const)
 				ss << "[" << instr.rf_const << "]";
 			ss << " ";

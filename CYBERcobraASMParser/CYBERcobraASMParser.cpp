@@ -621,17 +621,47 @@ vector<CYBERCobraInstruction> ProcessLines(const vector<string>& lines)
 	return result;
 }
 
+
+void SaveInFile(const string& path, const vector<CYBERCobraInstruction>& instructions)
+{
+
+	ofstream out_file;
+	out_file.open(path);
+
+	if (!out_file.is_open())
+	{
+		throw UnableToOpenFileException(path);
+	}
+
+
+	for (size_t i = 0; i < instructions.size(); i++)
+	{
+		auto& instr = instructions[i];
+		out_file << i << "\t" << CYBERCobra::ToString(instr) << "\t" << CYBERCobra::ToHex(instr) << "\t" << i << "\t" << CYBERCobra::Represent(instr, i) << endl;
+	}
+	out_file.close();
+}
+
+
 int main(int argc, char** argv)
 {
-	string path = "lab.txt";
+	if (argc != 3)
+	{
+		cerr << "Program must take 2 argumnets: input path and output path";
+		return 1;
+	}
+	string input_path = argv[1];
+	string output_path = argv[2];
 
 	vector <string> lines;
 	vector<CYBERCobraInstruction> instructions;
 	try
 	{
-		lines = ReadLines(path);
+		lines = ReadLines(input_path);
 
 		instructions = ProcessLines(lines);
+
+		SaveInFile(output_path, instructions);
 
 	}
 	catch (LabelNotFoundException& e)
@@ -644,14 +674,12 @@ int main(int argc, char** argv)
 		cerr << "Unknown asm instruction " << e.what();
 		return 1;
 	}
-
-
-
-	for (size_t i = 0; i < instructions.size(); i++)
+	catch (UnableToOpenFileException& e)
 	{
-		auto& instr = instructions[i];
-		cout << i << "\t" << CYBERCobra::ToString(instr) << "\t" << CYBERCobra::ToHex(instr) << "\t" << i << "\t" << CYBERCobra::Represent(instr, i) << endl;
+		cerr << "Couldnt open file " << e.what();
+		return 1;
 	}
+
 	return 0;
 }
 
