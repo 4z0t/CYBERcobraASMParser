@@ -13,7 +13,7 @@
 
 #include "Utility.h"
 #include "Definitions.h"
-
+#include "RISCV.h"
 #define REG_OFFSET 16
 
 using namespace std;
