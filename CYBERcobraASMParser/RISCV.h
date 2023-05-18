@@ -74,6 +74,15 @@ namespace riscv
 
 	};
 
+	class LoadExternalTransformer :public virtual InstructionTransformer
+	{
+	public:
+		virtual CYBERCobraInstruction Transform(Instruction const& instr)
+		{
+		}
+
+	};
+
 	class DirectTransformer : public virtual InstructionTransformer
 	{
 	public:
