@@ -176,7 +176,7 @@ namespace CYBERCobra
 		repr |= instr.ws << 28;
 		if (instr.ws == 0b00 && !(instr.b || instr.j))
 		{
-			repr |= (instr.rf_const& ((1<<23)-1)) << 5;
+			repr |= (instr.rf_const & ((1 << 23) - 1)) << 5;
 		}
 		else
 		{
@@ -185,7 +185,7 @@ namespace CYBERCobra
 			repr |= (instr.ra2 & 0b11111) << 13;
 			repr |= (instr.offset & 255) << 5;
 		}
-		repr |= instr.write_adress& 0b11111;
+		repr |= instr.write_adress & 0b11111;
 		return repr;
 	}
 
@@ -194,13 +194,28 @@ namespace CYBERCobra
 		return ToBits(instr).to_string();
 	}
 
+	unsigned long Reverse(unsigned long v)
+	{
+		union {
+			unsigned long l;
+			char b[sizeof(unsigned long)];
+		}bytes, result;
+
+		bytes.l = v;
+		for (uint i = 0; i < sizeof(unsigned long); i++)
+		{
+			result.b[sizeof(unsigned long) - i - 1] = bytes.b[i];
+		}
+		return result.l;
+	}
+
 	string ToHex(CYBERCobraInstruction instr)
 	{
 		using namespace std;
 		stringstream ss;
 		ss.width(8);
 		ss.fill('0');
-		ss << hex << ToBits(instr).to_ulong();
+		ss << hex << Reverse(ToBits(instr).to_ulong());
 		return ss.str();
 	}
 
